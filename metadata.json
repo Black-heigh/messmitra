@@ -1,0 +1,7 @@
+{
+  "name": "MessMitra",
+  "description": "Smart Mess Management & Food Waste Reduction System connecting students, mess staff, and administrators with meal intent registration, predictive prep, concerns tracking, and multi-institutional configuration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

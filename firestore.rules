@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'blackheigh1007@gmail.com'
+      );
+    }
+
+    function isManager() {
+      return isSignedIn() && (
+        isAdmin() ||
+        exists(/databases/$(database)/documents/managers/$(request.auth.uid))
+      );
+    }
+
+    // Institutions Collection: Public read for students to see requirements, Admin can configure
+    match /institutions/{institutionId} {
+      allow get: if isValidId(institutionId);
+      allow list: if true;
+      allow create, update, delete: if isAdmin() && isValidId(institutionId);
+    }
+
+    // Users Collection: users can read their own profile, managers & admins can inspect
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isManager());
+      allow list: if isManager();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (
+        request.auth.uid == userId || isAdmin()
+      );
+    }
+
+    // Menus Collection: all signed in users can view meals, managers & admins can manage
+    match /menus/{menuId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isManager() && isValidId(menuId);
+    }
+
+    // Meal Registrations Collection: students create/update their own intent, managers read
+    match /registrations/{registrationId} {
+      allow get: if isSignedIn() && isValidId(registrationId) && (
+        resource.data.studentUid == request.auth.uid || isManager()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.studentUid == request.auth.uid || isManager()
+      );
+      allow create: if isSignedIn() && isValidId(registrationId) && incoming().studentUid == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(registrationId) && (
+        (incoming().studentUid == request.auth.uid && incoming().studentUid == existing().studentUid) ||
+        isManager()
+      );
+      allow delete: if isSignedIn() && isValidId(registrationId) && (
+        existing().studentUid == request.auth.uid || isAdmin()
+      );
+    }
+
+    // Concerns / Feedback Collection: students create their concern, can view their own; managers & admins can view all & update status
+    match /concerns/{concernId} {
+      allow get: if isSignedIn() && isValidId(concernId) && (
+        resource.data.studentUid == request.auth.uid || isManager()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.studentUid == request.auth.uid || isManager()
+      );
+      allow create: if isSignedIn() && isValidId(concernId) && incoming().studentUid == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(concernId) && (
+        // Managers or Admins updating status, notes, assignment
+        isManager() ||
+        // Students updating their own initial description if still submitted
+        (existing().studentUid == request.auth.uid && incoming().studentUid == existing().studentUid)
+      );
+      allow delete: if isAdmin() && isValidId(concernId);
+    }
+
+    // Leftover Food Logs: mess managers log waste, all stakeholders can view aggregate transparency
+    match /leftoverLogs/{logId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isManager() && isValidId(logId);
+    }
+
+    // Notifications: target user can read their notifications and mark as read
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && isValidId(notificationId) && resource.data.targetUid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.targetUid == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isValidId(notificationId) && resource.data.targetUid == request.auth.uid;
+      allow delete: if isSignedIn() && isValidId(notificationId) && resource.data.targetUid == request.auth.uid;
+    }
+  }
+}

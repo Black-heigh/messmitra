@@ -1,0 +1,174 @@
+{
+  "entities": {
+    "Institution": {
+      "title": "Institution",
+      "description": "Educational institution or university campus configuring its mess system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 128 },
+        "shortCode": { "type": "string", "maxLength": 32 },
+        "studentIdFormat": { "type": "string", "maxLength": 64 },
+        "studentIdRegex": { "type": "string", "maxLength": 128 },
+        "studentIdExample": { "type": "string", "maxLength": 64 },
+        "hostels": { "type": "array" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "shortCode", "studentIdRegex"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account representing a student, mess manager, or administrator",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["student", "manager", "admin"] },
+        "studentId": { "type": "string", "maxLength": 64 },
+        "hostel": { "type": "string", "maxLength": 64 },
+        "roomNumber": { "type": "string", "maxLength": 32 },
+        "semesterFee": { "type": "number" },
+        "estimatedValueConsumed": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "institutionId", "name", "role"]
+    },
+    "MealMenu": {
+      "title": "MealMenu",
+      "description": "Scheduled meal menu item with dishes, ingredients, and supplier transparency",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "hostelId": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 16 },
+        "mealType": { "type": "string", "enum": ["breakfast", "lunch", "snacks", "dinner"] },
+        "timing": { "type": "string", "maxLength": 32 },
+        "registrationCutoff": { "type": "string", "maxLength": 16 },
+        "dishes": { "type": "array" },
+        "suppliers": { "type": "array" },
+        "photoUrl": { "type": "string", "maxLength": 512 },
+        "predictedAttendance": { "type": "number" },
+        "actualAttendance": { "type": "number" },
+        "status": { "type": "string", "enum": ["upcoming", "serving", "completed"] },
+        "suggestedPrep": { "type": "object" }
+      },
+      "required": ["id", "institutionId", "date", "mealType"]
+    },
+    "MealRegistration": {
+      "title": "MealRegistration",
+      "description": "Student meal-intent registration indicating whether student will eat or skip",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "mealMenuId": { "type": "string", "maxLength": 64 },
+        "studentUid": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 64 },
+        "studentName": { "type": "string", "maxLength": 128 },
+        "hostel": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 16 },
+        "mealType": { "type": "string", "maxLength": 32 },
+        "status": { "type": "string", "enum": ["eating", "skipping"] },
+        "checkedIn": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "institutionId", "mealMenuId", "studentUid", "status"]
+    },
+    "Concern": {
+      "title": "Concern",
+      "description": "Student feedback or concern with a 4-step transparent resolution workflow",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "studentUid": { "type": "string", "maxLength": 128 },
+        "studentName": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 64 },
+        "hostel": { "type": "string", "maxLength": 64 },
+        "category": { "type": "string", "enum": ["food_quality", "hygiene", "quantity", "timing", "menu_variety", "staff_behavior", "other"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "mealType": { "type": "string", "maxLength": 32 },
+        "mealDate": { "type": "string", "maxLength": 16 },
+        "dishAffected": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["submitted", "under_review", "action_taken", "resolved"] },
+        "assignedTo": { "type": "string", "maxLength": 128 },
+        "reviewerNotes": { "type": "string", "maxLength": 1000 },
+        "resolutionSummary": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "institutionId", "studentUid", "title", "description", "status"]
+    },
+    "LeftoverLog": {
+      "title": "LeftoverLog",
+      "description": "Mess staff recording of leftover food waste and donation/composting action",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "mealMenuId": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "maxLength": 16 },
+        "mealType": { "type": "string", "maxLength": 32 },
+        "wasteWeightKg": { "type": "number" },
+        "primaryLeftoverDishes": { "type": "array" },
+        "disposalMethod": { "type": "string", "enum": ["composting", "biogas", "ngo_donation", "disposal"] },
+        "notes": { "type": "string", "maxLength": 500 },
+        "loggedBy": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "institutionId", "date", "mealType", "wasteWeightKg"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "Real-time updates sent to students, managers, or admins",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "targetUid": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 64 },
+        "title": { "type": "string", "maxLength": 128 },
+        "message": { "type": "string", "maxLength": 500 },
+        "type": { "type": "string", "enum": ["concern_update", "meal_reminder", "waste_alert", "menu_change"] },
+        "read": { "type": "boolean" },
+        "relatedConcernId": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "targetUid", "title", "message"]
+    }
+  },
+  "firestore": {
+    "/institutions/{institutionId}": {
+      "schema": { "$ref": "#/entities/Institution" },
+      "description": "Multi-institutional configurations including student ID formats and regex rules"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Registered students, managers, and administrators"
+    },
+    "/menus/{menuId}": {
+      "schema": { "$ref": "#/entities/MealMenu" },
+      "description": "Meal menu items with food, suppliers, photos and predictions"
+    },
+    "/registrations/{registrationId}": {
+      "schema": { "$ref": "#/entities/MealRegistration" },
+      "description": "Student meal attendance intentions (eat or skip)"
+    },
+    "/concerns/{concernId}": {
+      "schema": { "$ref": "#/entities/Concern" },
+      "description": "Student concerns and transparent 4-stage resolution tracking"
+    },
+    "/leftoverLogs/{logId}": {
+      "schema": { "$ref": "#/entities/LeftoverLog" },
+      "description": "Mess staff leftover food records and waste analytics"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "Real-time notification events for students, managers, and admins"
+    }
+  }
+}
